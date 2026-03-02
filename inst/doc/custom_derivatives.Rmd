@@ -1,0 +1,265 @@
+---
+title: "Custom Derivatives for Maximum Likelihood Estimation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Custom Derivatives for Maximum Likelihood Estimation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+Maximum likelihood estimation (MLE) for survival models requires computing derivatives of the log-likelihood function. The **score function** (gradient) is needed for optimization, and the **Hessian matrix** (second derivatives) is needed for computing standard errors and confidence intervals via the observed Fisher information.
+
+The `flexhaz` package uses a simple 2-tier fallback for each:
+
+| Derivative | If provided | Otherwise |
+|-----------|-------------|-----------|
+| Score     | `score_fn(df, par, ...)` | [`numDeriv`](https://CRAN.R-project.org/package=numDeriv)`::grad()` |
+| Hessian   | `hess_fn(df, par, ...)`  | [`numDeriv`](https://CRAN.R-project.org/package=numDeriv)`::hessian()` |
+
+**You decide how to compute derivatives.** Hand-derive them, use an AD library, or let the package fall back to numerical methods. The package accepts functions; it doesn't care how they were produced.
+
+This vignette shows how to provide custom derivatives using the Weibull distribution as a case study.
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+library(flexhaz)
+```
+
+## The Weibull Distribution
+
+The Weibull distribution is widely used in survival analysis. Its hazard function is:
+
+$$h(t; k, \sigma) = \frac{k}{\sigma}\left(\frac{t}{\sigma}\right)^{k-1}$$
+
+The cumulative hazard is:
+
+$$H(t; k, \sigma) = \left(\frac{t}{\sigma}\right)^k$$
+
+For uncensored data, the log-likelihood is:
+
+$$\ell(k, \sigma) = n\log k + (k-1)\sum_i \log t_i - nk\log\sigma - \sum_i \left(\frac{t_i}{\sigma}\right)^k$$
+
+## Simulating Data
+
+```{r simulate-data}
+set.seed(42)
+true_k <- 2
+true_sigma <- 3
+n <- 100
+
+u <- runif(n)
+times <- true_sigma * (-log(u))^(1/true_k)
+df <- data.frame(t = times, delta = rep(1, n))
+
+cat("Sample size:", n, "\n")
+cat("True parameters: k =", true_k, ", sigma =", true_sigma, "\n")
+```
+
+## Approach 1: Minimal — Just the Hazard Rate
+
+The simplest approach provides only the hazard function. Everything else is computed numerically:
+
+```{r minimal-approach}
+weibull_minimal <- dfr_dist(
+    rate = function(t, par, ...) {
+        k <- par[1]
+        sigma <- par[2]
+        (k / sigma) * (t / sigma)^(k - 1)
+    }
+)
+
+ll <- loglik(weibull_minimal)
+s <- score(weibull_minimal)
+H <- hess_loglik(weibull_minimal)
+
+test_par <- c(1.8, 2.8)
+
+cat("Log-likelihood:", ll(df, par = test_par), "\n")
+cat("Score (numerical):", s(df, par = test_par), "\n")
+cat("Hessian (numerical):\n")
+print(round(H(df, par = test_par), 4))
+```
+
+**Pros:** No math required beyond the hazard function.
+
+**Cons:** Slower (numerical integration for H(t), finite differences for derivatives).
+
+## Approach 2: Analytical Score + Analytical Hessian
+
+For the Weibull, we can derive exact gradient and Hessian analytically:
+
+**Score:**
+
+$$\frac{\partial \ell}{\partial k} = \frac{n}{k} + \sum_i \log t_i - n\log\sigma - \sum_i \left(\frac{t_i}{\sigma}\right)^k \log\left(\frac{t_i}{\sigma}\right)$$
+
+$$\frac{\partial \ell}{\partial \sigma} = \frac{k}{\sigma}\left[\sum_i \left(\frac{t_i}{\sigma}\right)^k - n\right]$$
+
+```{r analytical-approach}
+weibull_full <- dfr_dist(
+    rate = function(t, par, ...) {
+        k <- par[1]
+        sigma <- par[2]
+        (k / sigma) * (t / sigma)^(k - 1)
+    },
+    cum_haz_rate = function(t, par, ...) {
+        k <- par[1]
+        sigma <- par[2]
+        (t / sigma)^k
+    },
+    score_fn = function(df, par, ...) {
+        k <- par[1]
+        sigma <- par[2]
+        t <- df$t
+        delta <- if ("delta" %in% names(df)) df$delta else rep(1, nrow(df))
+
+        n_events <- sum(delta == 1)
+        t_ratio <- t / sigma
+        log_t_ratio <- log(t_ratio)
+
+        dk <- n_events / k + sum(delta * log_t_ratio) -
+            sum(t_ratio^k * log_t_ratio)
+        dsigma <- -n_events * k / sigma +
+            (k / sigma) * sum(t_ratio^k)
+
+        c(dk, dsigma)
+    },
+    hess_fn = function(df, par, ...) {
+        k <- par[1]
+        sigma <- par[2]
+        t <- df$t
+        delta <- if ("delta" %in% names(df)) df$delta else rep(1, nrow(df))
+
+        n_events <- sum(delta == 1)
+        t_ratio <- t / sigma
+        log_t_ratio <- log(t_ratio)
+        t_ratio_k <- t_ratio^k
+
+        d2k <- -n_events / k^2 - sum(t_ratio_k * log_t_ratio^2)
+        d2k_sigma <- -n_events / sigma +
+            (1 / sigma) * sum(t_ratio_k) +
+            (k / sigma) * sum(t_ratio_k * log_t_ratio)
+        d2sigma <- n_events * k / sigma^2 -
+            k * (k + 1) / sigma^2 * sum(t_ratio_k)
+
+        matrix(c(d2k, d2k_sigma, d2k_sigma, d2sigma), nrow = 2)
+    }
+)
+
+s_full <- score(weibull_full)
+H_full <- hess_loglik(weibull_full)
+
+cat("Score (analytical):", s_full(df, par = test_par), "\n")
+cat("Hessian (analytical):\n")
+print(round(H_full(df, par = test_par), 4))
+```
+
+## Approach 3: Provide Score Only, Let [numDeriv](https://CRAN.R-project.org/package=numDeriv) Handle the Hessian
+
+If deriving the Hessian is tedious but the score is straightforward, provide just `score_fn`:
+
+```{r score-only}
+weibull_score_only <- dfr_dist(
+    rate = function(t, par, ...) {
+        k <- par[1]
+        sigma <- par[2]
+        (k / sigma) * (t / sigma)^(k - 1)
+    },
+    cum_haz_rate = function(t, par, ...) {
+        k <- par[1]
+        sigma <- par[2]
+        (t / sigma)^k
+    },
+    score_fn = function(df, par, ...) {
+        k <- par[1]
+        sigma <- par[2]
+        t <- df$t
+        delta <- if ("delta" %in% names(df)) df$delta else rep(1, nrow(df))
+
+        n_events <- sum(delta == 1)
+        t_ratio <- t / sigma
+        log_t_ratio <- log(t_ratio)
+
+        dk <- n_events / k + sum(delta * log_t_ratio) -
+            sum(t_ratio^k * log_t_ratio)
+        dsigma <- -n_events * k / sigma +
+            (k / sigma) * sum(t_ratio^k)
+
+        c(dk, dsigma)
+    }
+    # No hess_fn -> numDeriv::hessian fallback
+)
+
+H_mixed <- hess_loglik(weibull_score_only)
+cat("Hessian (numerical fallback):\n")
+print(round(H_mixed(df, par = test_par), 4))
+```
+
+This gives you fast optimization (analytical gradient) with correct but slower Hessian computation at the end.
+
+## Using Pre-Built Constructors
+
+The package provides helper constructors with analytical derivatives already implemented:
+
+```{r constructors, warning=FALSE}
+# These include score_fn and hess_fn (where available)
+weib <- dfr_weibull(shape = 2, scale = 3)
+exp_d <- dfr_exponential(lambda = 0.5)
+
+# Fit the model
+solver <- fit(weib)
+result <- solver(df, par = c(1.5, 2.5))
+
+cat("Fitted parameters:\n")
+print(coef(result))
+cat("\nTrue parameters: k =", true_k, ", sigma =", true_sigma, "\n")
+cat("\n95% Confidence intervals:\n")
+print(confint(result))
+```
+
+## Computing Standard Errors
+
+With the Hessian, standard errors come from the observed Fisher information:
+
+```{r standard-errors}
+# Hessian at MLE
+mle_par <- coef(result)
+hess_mle <- H_full(df, par = mle_par)
+
+# Observed Fisher information = -Hessian
+obs_info <- -hess_mle
+
+# Standard errors = sqrt(diag(inverse Fisher info))
+se <- sqrt(diag(solve(obs_info)))
+
+cat("Standard errors:\n")
+cat("  SE(k) =", round(se[1], 4), "\n")
+cat("  SE(sigma) =", round(se[2], 4), "\n")
+```
+
+## Distribution Reference
+
+| Distribution | Constructor | Score | Hessian |
+|-------------|------------|-------|---------|
+| Exponential | `dfr_exponential()` | Analytical | Analytical |
+| Weibull | `dfr_weibull()` | Analytical | Analytical |
+| Gompertz | `dfr_gompertz()` | Analytical | [numDeriv](https://CRAN.R-project.org/package=numDeriv) |
+| Log-logistic | `dfr_loglogistic()` | Analytical | [numDeriv](https://CRAN.R-project.org/package=numDeriv) |
+
+For Gompertz and log-logistic, you can supply your own `hess_fn` if needed.
+
+## Next Steps
+
+- **`vignette("flexhaz-package")`** - Package introduction and quick start
+- **`vignette("reliability_engineering")`** - Real-world applications
+- **`vignette("failure_rate")`** - Mathematical foundations
+- **`vignette("custom_distributions")`** - The three-level optimization paradigm

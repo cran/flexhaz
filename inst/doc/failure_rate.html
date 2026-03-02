@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Dynamic Failure Rate Distributions</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Dynamic Failure Rate Distributions</h1>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction" id="toc-introduction">Introduction</a>
+<ul>
+<li><a href="#why-hazard-based-parameterization" id="toc-why-hazard-based-parameterization">Why hazard-based
+parameterization?</a></li>
+<li><a href="#mathematical-background" id="toc-mathematical-background">Mathematical background</a></li>
+</ul></li>
+<li><a href="#getting-started" id="toc-getting-started">Getting
+Started</a>
+<ul>
+<li><a href="#using-built-in-distributions" id="toc-using-built-in-distributions">Using Built-in
+Distributions</a></li>
+<li><a href="#creating-custom-distributions" id="toc-creating-custom-distributions">Creating Custom
+Distributions</a></li>
+</ul></li>
+<li><a href="#distribution-methods" id="toc-distribution-methods">Distribution Methods</a>
+<ul>
+<li><a href="#hazard-and-cumulative-hazard" id="toc-hazard-and-cumulative-hazard">Hazard and cumulative
+hazard</a></li>
+<li><a href="#survival-and-cdf" id="toc-survival-and-cdf">Survival and
+CDF</a></li>
+<li><a href="#pdf-density" id="toc-pdf-density">PDF (Density)</a></li>
+<li><a href="#quantile-function-inverse-cdf" id="toc-quantile-function-inverse-cdf">Quantile function (inverse
+CDF)</a></li>
+<li><a href="#sampling" id="toc-sampling">Sampling</a></li>
+<li><a href="#overriding-parameters" id="toc-overriding-parameters">Overriding parameters</a></li>
+</ul></li>
+<li><a href="#likelihood-model-interface" id="toc-likelihood-model-interface">Likelihood Model Interface</a>
+<ul>
+<li><a href="#log-likelihood-for-survival-data" id="toc-log-likelihood-for-survival-data">Log-likelihood for survival
+data</a></li>
+<li><a href="#creating-test-data" id="toc-creating-test-data">Creating
+test data</a></li>
+<li><a href="#computing-log-likelihood" id="toc-computing-log-likelihood">Computing log-likelihood</a></li>
+<li><a href="#score-function-gradient" id="toc-score-function-gradient">Score function (gradient)</a></li>
+<li><a href="#hessian-of-log-likelihood" id="toc-hessian-of-log-likelihood">Hessian of log-likelihood</a></li>
+</ul></li>
+<li><a href="#maximum-likelihood-estimation" id="toc-maximum-likelihood-estimation">Maximum Likelihood Estimation</a>
+<ul>
+<li><a href="#working-with-censored-data" id="toc-working-with-censored-data">Working with censored data</a></li>
+</ul></li>
+<li><a href="#example-weibull-mle" id="toc-example-weibull-mle">Example:
+Weibull MLE</a></li>
+<li><a href="#custom-hazard-functions" id="toc-custom-hazard-functions">Custom Hazard Functions</a>
+<ul>
+<li><a href="#bathtub-hazard" id="toc-bathtub-hazard">Bathtub
+hazard</a></li>
+<li><a href="#time-covariate-interaction" id="toc-time-covariate-interaction">Time-covariate interaction</a></li>
+</ul></li>
+<li><a href="#integration-with-algebraic.dist" id="toc-integration-with-algebraic.dist">Integration with
+algebraic.dist</a></li>
+<li><a href="#model-diagnostics" id="toc-model-diagnostics">Model
+Diagnostics</a>
+<ul>
+<li><a href="#cox-snell-residuals" id="toc-cox-snell-residuals">Cox-Snell Residuals</a></li>
+<li><a href="#martingale-residuals" id="toc-martingale-residuals">Martingale Residuals</a></li>
+</ul></li>
+<li><a href="#summary" id="toc-summary">Summary</a></li>
+<li><a href="#next-steps" id="toc-next-steps">Next Steps</a></li>
+</ul>
+</div>
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The <code>flexhaz</code> package provides a flexible framework for
+working with survival distributions defined through their <strong>hazard
+(failure rate) functions</strong>. Instead of choosing from a fixed
+catalog of distributions, you directly specify the hazard function
+itself, giving complete flexibility to model systems with complex,
+time-varying failure patterns.</p>
+<div id="why-hazard-based-parameterization" class="section level3">
+<h3>Why hazard-based parameterization?</h3>
+<p>Traditional approaches use parametric families (Weibull, exponential,
+log-normal) that impose strong assumptions on failure rate behavior. The
+hazard function <span class="math inline">\(h(t)\)</span> provides a
+more intuitive parameterization for reliability:</p>
+<ul>
+<li><strong>Constant hazard</strong>: Exponential distribution
+(memoryless failures)</li>
+<li><strong>Increasing hazard</strong>: Wear-out phenomena</li>
+<li><strong>Decreasing hazard</strong>: Burn-in or infant mortality</li>
+<li><strong>Bathtub curve</strong>: Common in electronics and human
+mortality</li>
+</ul>
+</div>
+<div id="mathematical-background" class="section level3">
+<h3>Mathematical background</h3>
+<p>For a lifetime random variable <span class="math inline">\(T\)</span>, the instantaneous failure rate
+(hazard) is: <span class="math display">\[
+h(t) = \lim_{\Delta t \to 0} \frac{\Pr\{T \leq t + \Delta t | T &gt;
+t\}}{\Delta t} = \frac{f(t)}{S(t)}
+\]</span></p>
+<p>The cumulative hazard integrates the instantaneous rate: <span class="math display">\[
+H(t) = \int_0^t h(u) \, du
+\]</span></p>
+<p>From this, all other quantities follow:</p>
+<ul>
+<li><strong>Survival function</strong>: <span class="math inline">\(S(t)
+= \exp(-H(t))\)</span></li>
+<li><strong>CDF</strong>: <span class="math inline">\(F(t) = 1 -
+S(t)\)</span></li>
+<li><strong>PDF</strong>: <span class="math inline">\(f(t) = h(t) \cdot
+S(t)\)</span></li>
+</ul>
+</div>
+</div>
+<div id="getting-started" class="section level2">
+<h2>Getting Started</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(flexhaz)</span></code></pre></div>
+<div id="using-built-in-distributions" class="section level3">
+<h3>Using Built-in Distributions</h3>
+<p>The package provides convenient constructors for classic survival
+distributions:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Exponential: constant hazard h(t) = lambda</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>exp_dist <span class="ot">&lt;-</span> <span class="fu">dfr_exponential</span>(<span class="at">lambda =</span> <span class="fl">0.5</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># Weibull: power-law hazard h(t) = (k/sigma)(t/sigma)^(k-1)</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>weib_dist <span class="ot">&lt;-</span> <span class="fu">dfr_weibull</span>(<span class="at">shape =</span> <span class="dv">2</span>, <span class="at">scale =</span> <span class="dv">3</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># Gompertz: exponentially increasing hazard h(t) = a*exp(b*t)</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>gomp_dist <span class="ot">&lt;-</span> <span class="fu">dfr_gompertz</span>(<span class="at">a =</span> <span class="fl">0.01</span>, <span class="at">b =</span> <span class="fl">0.1</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co"># Log-logistic: non-monotonic hazard (increases then decreases)</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>ll_dist <span class="ot">&lt;-</span> <span class="fu">dfr_loglogistic</span>(<span class="at">alpha =</span> <span class="dv">10</span>, <span class="at">beta =</span> <span class="dv">2</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="fu">print</span>(exp_dist)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; Dynamic failure rate (DFR) distribution with failure rate:</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt; function (t, par, ...) </span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt; {</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt;     rep(par[[1]], length(t))</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; }</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt; &lt;bytecode: 0x6099ff6195a8&gt;</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; &lt;environment: 0x6099ff91c948&gt;</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt; It has a survival function given by:</span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt;     S(t|rate) = exp(-H(t,...))</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt; where H(t,...) is the cumulative hazard function.</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="fu">is_dfr_dist</span>(exp_dist)</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+</div>
+<div id="creating-custom-distributions" class="section level3">
+<h3>Creating Custom Distributions</h3>
+<p>For non-standard hazard patterns, use <code>dfr_dist()</code>
+directly:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Custom: linear increasing hazard h(t) = a + b*t</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>linear_dist <span class="ot">&lt;-</span> <span class="fu">dfr_dist</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">rate =</span> <span class="cf">function</span>(t, par, ...) {</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    a <span class="ot">&lt;-</span> par[<span class="dv">1</span>]</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    b <span class="ot">&lt;-</span> par[<span class="dv">2</span>]</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>    a <span class="sc">+</span> b <span class="sc">*</span> t</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  },</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">par =</span> <span class="fu">c</span>(<span class="at">a =</span> <span class="fl">0.1</span>, <span class="at">b =</span> <span class="fl">0.01</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>)</span></code></pre></div>
+<p>The <code>rate</code> function must accept:</p>
+<ul>
+<li><code>t</code>: time (scalar or vector)</li>
+<li><code>par</code>: parameter vector</li>
+<li><code>...</code>: additional arguments</li>
+</ul>
+<p>See <code>vignette(&quot;custom_distributions&quot;)</code> for detailed
+guidance on creating optimized custom distributions.</p>
+</div>
+</div>
+<div id="distribution-methods" class="section level2">
+<h2>Distribution Methods</h2>
+<p>All standard distribution functions are available:</p>
+<div id="hazard-and-cumulative-hazard" class="section level3">
+<h3>Hazard and cumulative hazard</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">hazard</span>(exp_dist)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>H <span class="ot">&lt;-</span> <span class="fu">cum_haz</span>(exp_dist)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># Evaluate at specific times</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">h</span>(<span class="dv">1</span>)      <span class="co"># Hazard at t=1</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] 0.5</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="fu">h</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>))  <span class="co"># Vectorized</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; [1] 0.5 0.5 0.5</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="fu">H</span>(<span class="dv">2</span>)      <span class="co"># Cumulative hazard at t=2</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span></code></pre></div>
+</div>
+<div id="survival-and-cdf" class="section level3">
+<h3>Survival and CDF</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">surv</span>(exp_dist)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>F <span class="ot">&lt;-</span> <span class="fu">cdf</span>(exp_dist)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co"># Verify S(t) + F(t) = 1</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>t <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">c</span>(<span class="at">survival =</span> <span class="fu">S</span>(t), <span class="at">cdf =</span> <span class="fu">F</span>(t), <span class="at">sum =</span> <span class="fu">S</span>(t) <span class="sc">+</span> <span class="fu">F</span>(t))</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;  survival       cdf       sum </span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; 0.3678794 0.6321206 1.0000000</span></span></code></pre></div>
+</div>
+<div id="pdf-density" class="section level3">
+<h3>PDF (Density)</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Use stats::density which flexhaz implements as density.dfr_dist</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>pdf_fn <span class="ot">&lt;-</span> <span class="fu">density</span>(exp_dist)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co"># For exponential: f(t) = lambda * exp(-lambda * t)</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>t <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="fu">c</span>(<span class="at">computed =</span> <span class="fu">pdf_fn</span>(t), <span class="at">analytical =</span> lambda <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> t))</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;   computed analytical </span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;  0.3032653  0.3032653</span></span></code></pre></div>
+</div>
+<div id="quantile-function-inverse-cdf" class="section level3">
+<h3>Quantile function (inverse CDF)</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>Q <span class="ot">&lt;-</span> <span class="fu">inv_cdf</span>(exp_dist)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co"># Median of exponential is log(2)/lambda</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>median_computed <span class="ot">&lt;-</span> <span class="fu">Q</span>(<span class="fl">0.5</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>median_analytical <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">/</span> <span class="fl">0.5</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="fu">c</span>(<span class="at">computed =</span> median_computed, <span class="at">analytical =</span> median_analytical)</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt;   computed analytical </span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt;   1.386294   1.386294</span></span></code></pre></div>
+</div>
+<div id="sampling" class="section level3">
+<h3>Sampling</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>samp <span class="ot">&lt;-</span> <span class="fu">sampler</span>(exp_dist)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>samples <span class="ot">&lt;-</span> <span class="fu">samp</span>(<span class="dv">1000</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co"># Compare sample mean to theoretical mean (1/lambda = 2)</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="fu">c</span>(<span class="at">sample_mean =</span> <span class="fu">mean</span>(samples), <span class="at">theoretical =</span> <span class="dv">1</span><span class="sc">/</span><span class="fl">0.5</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; sample_mean theoretical </span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;     1.92733     2.00000</span></span></code></pre></div>
+</div>
+<div id="overriding-parameters" class="section level3">
+<h3>Overriding parameters</h3>
+<p>All methods accept a <code>par</code> argument to override default
+parameters:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">hazard</span>(exp_dist)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co"># Use default lambda = 0.5</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="fu">h</span>(<span class="dv">1</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; [1] 0.5</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co"># Override with lambda = 2</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="fu">h</span>(<span class="dv">1</span>, <span class="at">par =</span> <span class="fu">c</span>(<span class="dv">2</span>))</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
+</div>
+</div>
+<div id="likelihood-model-interface" class="section level2">
+<h2>Likelihood Model Interface</h2>
+<p>The <code>dfr_dist</code> class implements the <a href="https://CRAN.R-project.org/package=likelihood.model">likelihood.model</a>
+interface, enabling maximum likelihood estimation with survival
+data.</p>
+<div id="log-likelihood-for-survival-data" class="section level3">
+<h3>Log-likelihood for survival data</h3>
+<p>For exact observations (failures at known times): <span class="math display">\[
+\log L_i = \log h(t_i) - H(t_i)
+\]</span></p>
+<p>For right-censored observations (survived past time <span class="math inline">\(t\)</span>): <span class="math display">\[
+\log L_i = -H(t_i)
+\]</span></p>
+</div>
+<div id="creating-test-data" class="section level3">
+<h3>Creating test data</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Simulate exact failure times from exponential(lambda=1)</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>true_lambda <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>times <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, <span class="at">rate =</span> true_lambda)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co"># Create data frame with standard survival format</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co"># delta = 1 means exact observation, delta = 0 means censored</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>df_exact <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> times, <span class="at">delta =</span> <span class="fu">rep</span>(<span class="dv">1</span>, n))</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="fu">head</span>(df_exact)</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt;            t delta</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; 1 0.84345726     1</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; 2 0.57661027     1</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; 3 1.32905487     1</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt; 4 0.03157736     1</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt; 5 0.05621098     1</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt; 6 0.31650122     1</span></span></code></pre></div>
+</div>
+<div id="computing-log-likelihood" class="section level3">
+<h3>Computing log-likelihood</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>dist <span class="ot">&lt;-</span> <span class="fu">dfr_dist</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="at">rate =</span> <span class="cf">function</span>(t, par, ...) <span class="fu">rep</span>(par[<span class="dv">1</span>], <span class="fu">length</span>(t)),</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">par =</span> <span class="cn">NULL</span>  <span class="co"># No default - must be supplied</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>)</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>ll <span class="ot">&lt;-</span> <span class="fu">loglik</span>(dist)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co"># Evaluate at different parameter values</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="fu">ll</span>(df_exact, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">0.5</span>))  <span class="co"># lambda = 0.5</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; [1] -62.91663</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="fu">ll</span>(df_exact, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">1.0</span>))  <span class="co"># lambda = 1.0 (true value)</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt; [1] -56.51854</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="fu">ll</span>(df_exact, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">2.0</span>))  <span class="co"># lambda = 2.0</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt; [1] -78.37973</span></span></code></pre></div>
+<p>The log-likelihood should be highest near the true parameter
+value.</p>
+</div>
+<div id="score-function-gradient" class="section level3">
+<h3>Score function (gradient)</h3>
+<p>The score function is the gradient of the log-likelihood with respect
+to parameters. It’s computed numerically by default:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>s <span class="ot">&lt;-</span> <span class="fu">score</span>(dist)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">s</span>(df_exact, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">1.0</span>))  <span class="co"># Should be close to 0 at MLE</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt; [1] -6.518543</span></span></code></pre></div>
+</div>
+<div id="hessian-of-log-likelihood" class="section level3">
+<h3>Hessian of log-likelihood</h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>H_ll <span class="ot">&lt;-</span> <span class="fu">hess_loglik</span>(dist)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>hess <span class="ot">&lt;-</span> <span class="fu">H_ll</span>(df_exact, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">1.0</span>))</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>hess  <span class="co"># Should be negative (concave at maximum)</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#&gt;      [,1]</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt; [1,]  -50</span></span></code></pre></div>
+</div>
+</div>
+<div id="maximum-likelihood-estimation" class="section level2">
+<h2>Maximum Likelihood Estimation</h2>
+<p>The <code>fit()</code> function provides MLE estimation:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>solver <span class="ot">&lt;-</span> <span class="fu">fit</span>(dist)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co"># Find MLE starting from initial guess</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">solver</span>(df_exact, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">0.5</span>), <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co"># Extract fitted parameters (the fisher_mle class from likelihood.model uses coef())</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="fu">coef</span>(result)</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt; [1] 0.8846654</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co"># Compare to analytical MLE: lambda_hat = n / sum(t)</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>analytical_mle <span class="ot">&lt;-</span> n <span class="sc">/</span> <span class="fu">sum</span>(times)</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="fu">c</span>(<span class="at">fitted =</span> <span class="fu">coef</span>(result), <span class="at">analytical =</span> analytical_mle, <span class="at">true =</span> true_lambda)</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt;     fitted analytical       true </span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt;  0.8846654  0.8846654  1.0000000</span></span></code></pre></div>
+<div id="working-with-censored-data" class="section level3">
+<h3>Working with censored data</h3>
+<p>Real survival data often includes censoring. Here’s an example with
+mixed data:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Some observations are censored (patient still alive at study end)</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>df_mixed <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="at">t =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>),</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">delta =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>)  <span class="co"># 0 = censored</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>)</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>ll <span class="ot">&lt;-</span> <span class="fu">loglik</span>(dist)</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co"># Fit with censored data</span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>solver <span class="ot">&lt;-</span> <span class="fu">fit</span>(dist)</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">solver</span>(df_mixed, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">0.5</span>), <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="fu">coef</span>(result)</span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt; [1] 0.1388889</span></span></code></pre></div>
+</div>
+</div>
+<div id="example-weibull-mle" class="section level2">
+<h2>Example: Weibull MLE</h2>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Create Weibull DFR</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>weibull <span class="ot">&lt;-</span> <span class="fu">dfr_dist</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="at">rate =</span> <span class="cf">function</span>(t, par, ...) {</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>    k <span class="ot">&lt;-</span> par[<span class="dv">1</span>]</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>    sigma <span class="ot">&lt;-</span> par[<span class="dv">2</span>]</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>    (k <span class="sc">/</span> sigma) <span class="sc">*</span> (t <span class="sc">/</span> sigma)<span class="sc">^</span>(k <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>  }</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>)</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co"># Simulate Weibull data (shape=2, scale=3)</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">456</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>true_shape <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>true_scale <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a></span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a><span class="co"># Use inverse CDF sampling</span></span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(n)</span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a>weibull_times <span class="ot">&lt;-</span> true_scale <span class="sc">*</span> (<span class="sc">-</span><span class="fu">log</span>(u))<span class="sc">^</span>(<span class="dv">1</span><span class="sc">/</span>true_shape)</span>
+<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a></span>
+<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a>df_weibull <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> weibull_times, <span class="at">delta =</span> <span class="fu">rep</span>(<span class="dv">1</span>, n))</span>
+<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a></span>
+<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a><span class="co"># Fit</span></span>
+<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a>solver <span class="ot">&lt;-</span> <span class="fu">fit</span>(weibull)</span>
+<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">solver</span>(df_weibull, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">1.5</span>, <span class="fl">2.5</span>), <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>)</span>
+<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a></span>
+<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a><span class="fu">c</span>(<span class="at">fitted_shape =</span> <span class="fu">coef</span>(result)[<span class="dv">1</span>], <span class="at">true_shape =</span> true_shape)</span>
+<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a><span class="co">#&gt; fitted_shape   true_shape </span></span>
+<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a><span class="co">#&gt;      1.92518      2.00000</span></span>
+<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a><span class="fu">c</span>(<span class="at">fitted_scale =</span> <span class="fu">coef</span>(result)[<span class="dv">2</span>], <span class="at">true_scale =</span> true_scale)</span>
+<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a><span class="co">#&gt; fitted_scale   true_scale </span></span>
+<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a><span class="co">#&gt;     2.788113     3.000000</span></span></code></pre></div>
+</div>
+<div id="custom-hazard-functions" class="section level2">
+<h2>Custom Hazard Functions</h2>
+<p>The real power of <code>flexhaz</code> is modeling complex,
+non-standard hazard patterns.</p>
+<div id="bathtub-hazard" class="section level3">
+<h3>Bathtub hazard</h3>
+<p>A classic bathtub curve has three phases: 1. <strong>Infant
+mortality</strong>: High initial failure rate that decreases 2.
+<strong>Useful life</strong>: Low, relatively constant failure rate 3.
+<strong>Wear-out</strong>: Increasing failure rate as components age</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># h(t) = a * exp(-b*t) + c + d * t^k</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="co"># Three components: infant mortality + baseline + wear-out</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>bathtub <span class="ot">&lt;-</span> <span class="fu">dfr_dist</span>(</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="at">rate =</span> <span class="cf">function</span>(t, par, ...) {</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>    a <span class="ot">&lt;-</span> par[<span class="dv">1</span>]  <span class="co"># infant mortality magnitude</span></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>    b <span class="ot">&lt;-</span> par[<span class="dv">2</span>]  <span class="co"># infant mortality decay rate</span></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>    c <span class="ot">&lt;-</span> par[<span class="dv">3</span>]  <span class="co"># baseline hazard (useful life)</span></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>    d <span class="ot">&lt;-</span> par[<span class="dv">4</span>]  <span class="co"># wear-out coefficient</span></span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>    k <span class="ot">&lt;-</span> par[<span class="dv">5</span>]  <span class="co"># wear-out exponent</span></span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>    a <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>b <span class="sc">*</span> t) <span class="sc">+</span> c <span class="sc">+</span> d <span class="sc">*</span> t<span class="sc">^</span>k</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a>  },</span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a>  <span class="at">par =</span> <span class="fu">c</span>(<span class="at">a =</span> <span class="dv">1</span>, <span class="at">b =</span> <span class="dv">2</span>, <span class="at">c =</span> <span class="fl">0.02</span>, <span class="at">d =</span> <span class="fl">0.001</span>, <span class="at">k =</span> <span class="dv">2</span>)</span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a>)</span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a></span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a><span class="co"># Plot the hazard function</span></span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a>t_seq <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.01</span>, <span class="dv">15</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
+<span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">hazard</span>(bathtub)</span>
+<span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a><span class="fu">plot</span>(t_seq, <span class="fu">sapply</span>(t_seq, h), <span class="at">type =</span> <span class="st">&quot;l&quot;</span>,</span>
+<span id="cb17-19"><a href="#cb17-19" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;Time&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Hazard rate&quot;</span>,</span>
+<span id="cb17-20"><a href="#cb17-20" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Bathtub hazard curve&quot;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" alt="Bathtub hazard curve showing three phases: high infant mortality at t=0 that decreases, then a constant useful life period, followed by increasing wear-out hazard." /></p>
+</div>
+<div id="time-covariate-interaction" class="section level3">
+<h3>Time-covariate interaction</h3>
+<p>Hazards can depend on covariates that modify the time effect:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Proportional hazards with covariate x</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co"># h(t, x) = h0(t) * exp(beta * x)</span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co"># where h0(t) = Weibull baseline</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>ph_model <span class="ot">&lt;-</span> <span class="fu">dfr_dist</span>(</span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="at">rate =</span> <span class="cf">function</span>(t, par, <span class="at">x =</span> <span class="dv">0</span>, ...) {</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>    k <span class="ot">&lt;-</span> par[<span class="dv">1</span>]</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>    sigma <span class="ot">&lt;-</span> par[<span class="dv">2</span>]</span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>    beta <span class="ot">&lt;-</span> par[<span class="dv">3</span>]</span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>    baseline <span class="ot">&lt;-</span> (k <span class="sc">/</span> sigma) <span class="sc">*</span> (t <span class="sc">/</span> sigma)<span class="sc">^</span>(k <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>    baseline <span class="sc">*</span> <span class="fu">exp</span>(beta <span class="sc">*</span> x)</span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a>  },</span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a>  <span class="at">par =</span> <span class="fu">c</span>(<span class="at">shape =</span> <span class="dv">2</span>, <span class="at">scale =</span> <span class="dv">3</span>, <span class="at">beta =</span> <span class="fl">0.5</span>)</span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a>)</span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a></span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">hazard</span>(ph_model)</span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a></span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="co"># Hazard for different covariate values</span></span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a><span class="fu">h</span>(<span class="dv">2</span>, <span class="at">x =</span> <span class="dv">0</span>)  <span class="co"># Baseline</span></span>
+<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a><span class="co">#&gt;     shape </span></span>
+<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a><span class="co">#&gt; 0.4444444</span></span>
+<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a><span class="fu">h</span>(<span class="dv">2</span>, <span class="at">x =</span> <span class="dv">1</span>)  <span class="co"># Higher risk group</span></span>
+<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a><span class="co">#&gt;    shape </span></span>
+<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a><span class="co">#&gt; 0.732765</span></span></code></pre></div>
+</div>
+</div>
+<div id="integration-with-algebraic.dist" class="section level2">
+<h2>Integration with algebraic.dist</h2>
+<p>The <code>dfr_dist</code> class inherits from <a href="https://CRAN.R-project.org/package=algebraic.dist">algebraic.dist</a>
+classes, providing access to additional functionality:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Support is (0, Inf) for all DFR distributions</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>support <span class="ot">&lt;-</span> <span class="fu">sup</span>(exp_dist)</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="fu">print</span>(support)</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="co">#&gt; (0, Inf)</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="co"># Parameters</span></span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="fu">params</span>(exp_dist)</span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a><span class="co">#&gt; [1] 0.5</span></span></code></pre></div>
+</div>
+<div id="model-diagnostics" class="section level2">
+<h2>Model Diagnostics</h2>
+<p>After fitting a model, it’s essential to verify goodness-of-fit. The
+package provides diagnostic tools based on residual analysis.</p>
+<div id="cox-snell-residuals" class="section level3">
+<h3>Cox-Snell Residuals</h3>
+<p>Cox-Snell residuals are defined as r_i = H(t_i), the cumulative
+hazard at each observation time. If the model is correctly specified,
+these residuals follow an Exp(1) distribution.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Fit a model and check residuals</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">99</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>test_times <span class="ot">&lt;-</span> <span class="fu">rexp</span>(<span class="dv">80</span>, <span class="at">rate =</span> <span class="fl">0.3</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>test_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> test_times, <span class="at">delta =</span> <span class="dv">1</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="co"># Fit exponential</span></span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a>exp_fitted <span class="ot">&lt;-</span> <span class="fu">dfr_exponential</span>()</span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a>solver <span class="ot">&lt;-</span> <span class="fu">fit</span>(exp_fitted)</span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a>fit_result <span class="ot">&lt;-</span> <span class="fu">solver</span>(test_df, <span class="at">par =</span> <span class="fu">c</span>(<span class="fl">0.5</span>))</span>
+<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a>lambda_hat <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit_result)</span>
+<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a><span class="co"># Create fitted distribution with estimated parameters</span></span>
+<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a>exp_final <span class="ot">&lt;-</span> <span class="fu">dfr_exponential</span>(<span class="at">lambda =</span> lambda_hat)</span>
+<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a></span>
+<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="co"># Q-Q plot of Cox-Snell residuals</span></span>
+<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a><span class="fu">qqplot_residuals</span>(exp_final, test_df)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" alt="Cox-Snell residuals Q-Q plot showing model fit assessment." /></p>
+<p>Points falling along the diagonal indicate good fit. Systematic
+departures suggest model misspecification.</p>
+</div>
+<div id="martingale-residuals" class="section level3">
+<h3>Martingale Residuals</h3>
+<p>Martingale residuals (M_i = delta_i - H(t_i)) are useful for
+identifying individual observations that are poorly fit:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>mart_resid <span class="ot">&lt;-</span> <span class="fu">residuals</span>(exp_final, test_df, <span class="at">type =</span> <span class="st">&quot;martingale&quot;</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="fu">summary</span>(mart_resid)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co">#&gt; -4.8856 -0.4127  0.3650  0.0000  0.7569  0.9998</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a><span class="co"># Large positive values: failed earlier than expected</span></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a><span class="co"># Large negative values: survived longer than expected</span></span></code></pre></div>
+<p>For more detailed diagnostic workflows, see
+<code>vignette(&quot;reliability_engineering&quot;)</code>.</p>
+</div>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p>The <code>flexhaz</code> package provides:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Flexible specification</strong>: Define distributions
+through hazard functions</li>
+<li><strong>Complete distribution interface</strong>: hazard, survival,
+CDF, PDF, quantiles, sampling</li>
+<li><strong>Likelihood model support</strong>: Log-likelihood, score,
+Hessian for MLE</li>
+<li><strong>Censoring support</strong>: Handle exact, right-censored,
+and left-censored survival data</li>
+<li><strong>Numerical integration</strong>: Automatic computation of
+cumulative hazard</li>
+<li><strong>Model diagnostics</strong>: Residuals and Q-Q plots for fit
+assessment</li>
+</ol>
+<p>This makes it ideal for:</p>
+<ul>
+<li>Custom reliability models</li>
+<li>Survival analysis with non-standard hazard patterns</li>
+<li>Maximum likelihood estimation of hazard function parameters</li>
+<li>Simulation studies with flexible failure distributions</li>
+</ul>
+</div>
+<div id="next-steps" class="section level2">
+<h2>Next Steps</h2>
+<ul>
+<li><strong><code>vignette(&quot;flexhaz-package&quot;)</code></strong> - Package
+introduction and quick start</li>
+<li><strong><code>vignette(&quot;reliability_engineering&quot;)</code></strong> -
+Five real-world case studies</li>
+<li><strong><code>vignette(&quot;custom_distributions&quot;)</code></strong> - The
+three-level optimization paradigm</li>
+<li><strong><code>vignette(&quot;custom_derivatives&quot;)</code></strong> -
+Supplying analytical score and Hessian functions</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
