@@ -685,13 +685,13 @@ these guidelines:</p>
 <span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co"># Single evaluation timing (run multiple times for accuracy)</span></span>
 <span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="fu">system.time</span>(<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>) <span class="fu">ll1</span>(test_data, <span class="fu">c</span>(<span class="fl">0.1</span>)))</span>
 <span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
-<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt;   2.845   0.002   2.848</span></span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt;   3.853   0.003   3.857</span></span>
 <span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="fu">system.time</span>(<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>) <span class="fu">ll2</span>(test_data, <span class="fu">c</span>(<span class="fl">0.1</span>)))</span>
 <span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
-<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="co">#&gt;   0.362   0.000   0.362</span></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="co">#&gt;   0.312   0.000   0.311</span></span>
 <span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="fu">system.time</span>(<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>) <span class="fu">ll3</span>(test_data, <span class="fu">c</span>(<span class="fl">0.1</span>)))</span>
 <span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
-<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="co">#&gt;   0.369   0.000   0.369</span></span></code></pre></div>
+<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="co">#&gt;   0.322   0.000   0.322</span></span></code></pre></div>
 </div>
 <div id="real-world-example-bathtub-curve" class="section level2">
 <h2>Real-World Example: Bathtub Curve</h2>
