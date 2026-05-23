@@ -1,6 +1,6 @@
 Package: flexhaz
 Title: Dynamic Failure Rate Distributions for Survival Analysis
-Version: 0.5.1
+Version: 0.5.2
 Authors@R: 
     person("Alexander", "Towell", , "queelius@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6443-9897"))
@@ -24,9 +24,9 @@ URL: https://github.com/queelius/flexhaz,
         https://queelius.github.io/flexhaz/
 BugReports: https://github.com/queelius/flexhaz/issues
 NeedsCompilation: no
-Packaged: 2026-03-17 18:04:52 UTC; spinoza
+Packaged: 2026-05-21 16:43:42 UTC; spinoza
 Author: Alexander Towell [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-6443-9897>)
 Maintainer: Alexander Towell <queelius@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-03-19 05:00:10 UTC
+Date/Publication: 2026-05-23 05:10:30 UTC
