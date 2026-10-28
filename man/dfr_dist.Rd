@@ -21,12 +21,16 @@ dfr_dist(
 which means that the parameters are unknown.}
 
 \item{ob_col}{The column name for observation times in data frames.
-Defaults to "t".}
+Defaults to "t". Inference methods require finite,
+non-negative numeric times and reject missing values.}
 
 \item{delta_col}{The column name for event indicators in data frames.
 Uses standard survival analysis convention: 1 = event
 observed (exact), 0 = right-censored, -1 = left-censored.
-Defaults to "delta".}
+Defaults to "delta".
+A missing column denotes all exact observations. An existing
+column must contain non-missing numeric codes or logical
+event indicators; other values are rejected.}
 
 \item{cum_haz_rate}{Optional analytical cumulative hazard function H(t, par).
 If provided, used for faster exact cumulative hazard

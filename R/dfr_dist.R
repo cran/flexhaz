@@ -8,11 +8,15 @@
 #' @param par The parameters of the distribution. Defaults to `NULL`,
 #'            which means that the parameters are unknown.
 #' @param ob_col The column name for observation times in data frames.
-#'               Defaults to "t".
+#'               Defaults to "t". Inference methods require finite,
+#'               non-negative numeric times and reject missing values.
 #' @param delta_col The column name for event indicators in data frames.
 #'                  Uses standard survival analysis convention: 1 = event
 #'                  observed (exact), 0 = right-censored, -1 = left-censored.
 #'                  Defaults to "delta".
+#'                  A missing column denotes all exact observations. An existing
+#'                  column must contain non-missing numeric codes or logical
+#'                  event indicators; other values are rejected.
 #' @param cum_haz_rate Optional analytical cumulative hazard function H(t, par).
 #'                     If provided, used for faster exact cumulative hazard
 #'                     computation instead of numerical integration.
@@ -317,8 +321,9 @@ loglik.dfr_dist <- function(model, ...) {
     function(df, par = NULL, ...) {
         par <- get_params(par, model$par)
 
-        t <- df[[model$ob_col]]
-        delta <- get_delta(df, model$delta_col)
+        observations <- get_observations(df, model$ob_col, model$delta_col)
+        t <- observations$t
+        delta <- observations$delta
 
         ll <- 0
 
@@ -370,8 +375,9 @@ score.dfr_dist <- function(model, ...) {
 
     function(df, par = NULL, ...) {
         par <- get_params(par, model$par)
+        observations <- get_observations(df, model$ob_col, model$delta_col)
         if (!is.null(model$score_fn)) {
-            delta <- get_delta(df, model$delta_col)
+            delta <- observations$delta
             if (!any(delta == -1)) {
                 return(model$score_fn(df, par,
                     ob_col = model$ob_col, delta_col = model$delta_col, ...))
@@ -397,8 +403,9 @@ hess_loglik.dfr_dist <- function(model, ...) {
 
     function(df, par = NULL, ...) {
         par <- get_params(par, model$par)
+        observations <- get_observations(df, model$ob_col, model$delta_col)
         if (!is.null(model$hess_fn)) {
-            delta <- get_delta(df, model$delta_col)
+            delta <- observations$delta
             if (!any(delta == -1)) {
                 return(model$hess_fn(df, par,
                     ob_col = model$ob_col, delta_col = model$delta_col, ...))

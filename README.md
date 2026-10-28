@@ -39,14 +39,18 @@ residual diagnostics.
 
 ## Why flexhaz?
 
-| Feature                    | flexhaz                              | survival     | flexsurv |
-|----------------------------|--------------------------------------|--------------|----------|
-| Custom hazard functions    | **Yes**                              | No           | Limited  |
-| Built-in distributions     | Exp, Weibull, Gompertz, Log-logistic | Weibull, Exp | Many     |
-| User-supplied derivatives  | **score + Hessian**                  | No           | No       |
-| Censoring support          | Right + Left                         | Right        | Right    |
-| Model diagnostics          | Cox-Snell, Martingale, Q-Q           | Limited      | Limited  |
-| Likelihood model interface | **Full**                             | Basic        | Partial  |
+Use `flexhaz` when your starting point is a hazard function and you want
+to reuse it for simulation, likelihood evaluation, fitting, and
+composition into reliability systems. Analytical cumulative hazards and
+derivatives are optional.
+
+For regression and established survival workflows, also consider
+[`survival`](https://stat.ethz.ch/R-manual/R-devel/library/survival/html/Surv.html)
+and
+[`flexsurv`](https://chjackson.github.io/flexsurv/reference/flexsurvreg.html).
+Both support multiple censoring types; `flexsurv` also accepts custom
+distributions. `flexhaz` currently handles exact, right-censored, and
+left-censored observations, using a function-based likelihood interface.
 
 ## Features
 
@@ -167,28 +171,22 @@ qqplot_residuals(fitted_exp, df)
 
 ## Mathematical Background
 
-For a lifetime
-![T](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;T "T"),
-the hazard function is:
-
-![h(t) = \frac{f(t)}{S(t)}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;h%28t%29%20%3D%20%5Cfrac%7Bf%28t%29%7D%7BS%28t%29%7D "h(t) = \frac{f(t)}{S(t)}")
+For a lifetime $T$, the hazard function is: $$h(t) = \frac{f(t)}{S(t)}$$
 
 From the hazard, all other quantities follow:
 
-| Function          | Formula                                                                                                                                                                          | Method      |
-|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| Cumulative hazard | ![H(t) = \int_0^t h(u) du](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;H%28t%29%20%3D%20%5Cint_0%5Et%20h%28u%29%20du "H(t) = \int_0^t h(u) du") | `cum_haz()` |
-| Survival          | ![S(t) = e^{-H(t)}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;S%28t%29%20%3D%20e%5E%7B-H%28t%29%7D "S(t) = e^{-H(t)}")                        | `surv()`    |
-| CDF               | ![F(t) = 1 - S(t)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;F%28t%29%20%3D%201%20-%20S%28t%29 "F(t) = 1 - S(t)")                             | `cdf()`     |
-| PDF               | ![f(t) = h(t) \cdot S(t)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;f%28t%29%20%3D%20h%28t%29%20%5Ccdot%20S%28t%29 "f(t) = h(t) \cdot S(t)")  | `density()` |
+| Function          | Formula                   | Method      |
+|-------------------|---------------------------|-------------|
+| Cumulative hazard | $H(t) = \int_0^t h(u) du$ | `cum_haz()` |
+| Survival          | $S(t) = e^{-H(t)}$        | `surv()`    |
+| CDF               | $F(t) = 1 - S(t)$         | `cdf()`     |
+| PDF               | $f(t) = h(t) \cdot S(t)$  | `density()` |
 
 ## Likelihood for Survival Data
 
-For exact observations:
-![\log L = \log h(t) - H(t)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Clog%20L%20%3D%20%5Clog%20h%28t%29%20-%20H%28t%29 "\log L = \log h(t) - H(t)")
+For exact observations: $\log L = \log h(t) - H(t)$
 
-For right-censored:
-![\log L = -H(t)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Clog%20L%20%3D%20-H%28t%29 "\log L = -H(t)")
+For right-censored: $\log L = -H(t)$
 
 ``` r
 # Mixed data with censoring
